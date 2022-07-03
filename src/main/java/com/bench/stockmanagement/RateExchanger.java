@@ -10,10 +10,10 @@ import java.util.List;
 
 @Component
 public class RateExchanger {
-    private final RateReader rateReader;
+    private final Reader rateReader;
 
     @Autowired
-    public RateExchanger(RateReader rateReader) {
+    public RateExchanger(Reader rateReader) {
         this.rateReader = rateReader;
     }
 
