@@ -82,7 +82,7 @@ public class Reader {
     private SoldItem createSoldProducts(String line) {
         String[] lineParts = line.split(",");
 
-        String receiptNumber = lineParts[0];
+        Integer receiptNumber = Integer.parseInt(lineParts[0]);
         String hungarianName = lineParts[1];
         String itemNumber = lineParts[2];
         Integer quantity = lineParts[3].isEmpty() ? 0 :Integer.parseInt(lineParts[3]);

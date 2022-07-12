@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OrderService {
-    private final AmazonDynamoDB client;
     private final DynamoDBMapper mapper;
 
     @Autowired
@@ -18,7 +17,7 @@ public class OrderService {
         AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
                 "http://localhost:8000",
                 "us-east-1");
-        this.client = AmazonDynamoDBClientBuilder.standard()
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
                                                  .withEndpointConfiguration(endpointConfiguration)
                                                  .build();
         this.mapper = new DynamoDBMapper(client);
