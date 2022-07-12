@@ -1,6 +1,7 @@
-package com.bench.stockmanagement;
+package com.bench.stockmanagement.services;
 
 import com.bench.stockmanagement.domain.UsdRate;
+import com.bench.stockmanagement.services.Reader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
