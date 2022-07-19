@@ -1,63 +1,46 @@
 package com.bench.stockmanagement.dataaccess;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.*;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
+import lombok.ToString;
 
-@DynamoDBTable(tableName = "SoldItems")
+@ToString
+@DynamoDBDocument
 public class SoldItem {
-    private String id;
-    private Integer receiptNumber;
-    private String date;
     private String itemNumber;
     private String hungarianName;
     private Integer price;
     private Integer quantity;
 
-    public SoldItem(Integer receiptNumber, String date, String itemNumber, String hungarianName, Integer price,
-                    Integer quantity) {
-        this.id = receiptNumber + "-" + itemNumber;
-        this.receiptNumber = receiptNumber;
-        this.date = date;
+    public SoldItem() {
+    }
+
+    public SoldItem(String itemNumber, String hungarianName, Integer price, Integer quantity) {
         this.itemNumber = itemNumber;
         this.hungarianName = hungarianName;
         this.price = price;
         this.quantity = quantity;
     }
 
-    @DynamoDBHashKey
-    public String getId() {
-        return id;
-    }
-
-    public Integer getReceiptNumber() {
-        return receiptNumber;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
+    @DynamoDBAttribute
     public String getItemNumber() {
         return itemNumber;
     }
 
+    @DynamoDBAttribute
     public String getHungarianName() {
         return hungarianName;
     }
 
+    @DynamoDBAttribute
     public Integer getPrice() {
         return price;
     }
 
+    @DynamoDBAttribute
     public Integer getQuantity() {
         return quantity;
-    }
-
-    public void setReceiptNumber(Integer receiptNumber) {
-        this.receiptNumber = receiptNumber;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
     }
 
     public void setItemNumber(String itemNumber) {

@@ -6,16 +6,21 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
 public class OrderedProduct {
     private String itemNumber;
     private String englishName;
+    private String hungarianName;
     private Integer quantity;
     private Double price;
     private Double totalPrice;
 
-    public OrderedProduct(String itemNumber, String englishName, Integer quantity, Double price) {
+    public OrderedProduct() {
+    }
+
+    public OrderedProduct(String itemNumber, String englishName, String hungarianName, Integer quantity, Double price) {
         this.itemNumber = itemNumber;
         this.englishName = englishName;
+        this.hungarianName = hungarianName;
         this.quantity = quantity;
         this.price = price;
-        this.totalPrice = quantity*price;
+        this.totalPrice = quantity * price;
     }
 
     public String getItemNumber() {
@@ -24,6 +29,10 @@ public class OrderedProduct {
 
     public String getEnglishName() {
         return englishName;
+    }
+
+    public String getHungarianName() {
+        return hungarianName;
     }
 
     public Integer getQuantity() {
@@ -44,6 +53,10 @@ public class OrderedProduct {
 
     public void setEnglishName(String englishName) {
         this.englishName = englishName;
+    }
+
+    public void setHungarianName(String hungarianName) {
+        this.hungarianName = hungarianName;
     }
 
     public void setQuantity(Integer quantity) {

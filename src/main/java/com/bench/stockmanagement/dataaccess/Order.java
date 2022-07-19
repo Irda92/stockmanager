@@ -1,6 +1,5 @@
 package com.bench.stockmanagement.dataaccess;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 
@@ -12,16 +11,20 @@ public class Order {
     private String date;
     private Double totalShippingCost;
     private Integer totalProductCount;
+    private String currency;
     private List<OrderedProduct> products;
 
     public Order(String id, String date, Double totalShippingCost,
-                 Integer totalProductCount, List<OrderedProduct> products) {
+                 Integer totalProductCount, String currency, List<OrderedProduct> products) {
         this.id = id;
         this.date = date;
         this.totalShippingCost = totalShippingCost;
         this.totalProductCount = totalProductCount;
+        this.currency = currency;
         this.products = products;
     }
+
+    public Order() {}
 
     @DynamoDBHashKey
     public String getId() {
@@ -40,16 +43,20 @@ public class Order {
         return totalProductCount;
     }
 
+    public String getCurrency() {
+        return currency;
+    }
+
     public List<OrderedProduct> getProducts() {
         return products;
     }
 
     public void setId(String id) {
-        id = id;
+        this.id = id;
     }
 
     public void setDate(String date) {
-        date = date;
+        this.date = date;
     }
 
     public void setTotalShippingCost(Double totalShippingCost) {
@@ -58,6 +65,10 @@ public class Order {
 
     public void setTotalProductCount(Integer totalProductCount) {
         this.totalProductCount = totalProductCount;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
     public void setProducts(List<OrderedProduct> products) {
