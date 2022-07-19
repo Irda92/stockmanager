@@ -36,7 +36,7 @@ public class Controller {
         return rateExchanger.getRateFor(inputDate);
     }
 
-//    Pro
+//    Probably these endpoints will be used later
 //    @GetMapping("/save/order")
 //    public String saveOrder() {
 //        orderHandler.loadOrder();
