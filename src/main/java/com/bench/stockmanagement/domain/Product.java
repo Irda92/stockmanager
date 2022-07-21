@@ -1,17 +1,22 @@
 package com.bench.stockmanagement.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
+import java.util.List;
+
+@ToString
 @Getter
 @Builder
+@AllArgsConstructor
 public class Product {
-    private final String itemNumber;
-    private final String englishName;
-    private final String hungarianName;
-    private final Integer priceToSell;
-    private final Integer priceToBuy;
-    private final Integer quantity;
-    private final Integer ordered;
-    private final Integer sold;
+    private String itemNumber;
+    private String englishName;
+    private String hungarianName;
+    private int quantity;
+    private List<SellingInformation> sellingInformation;
+    private List<PurchaseInformation> purchaseInformation;
+    private int actualProfit;
 }

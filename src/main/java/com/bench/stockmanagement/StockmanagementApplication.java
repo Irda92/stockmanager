@@ -1,7 +1,9 @@
 package com.bench.stockmanagement;
 
-import com.bench.stockmanagement.services.Reader;
-import com.bench.stockmanagement.services.dynamo.DynamoDbManager;
+import com.bench.stockmanagement.mappers.OrderMapper;
+import com.bench.stockmanagement.mappers.SellingMapper;
+import com.bench.stockmanagement.services.OrderReader;
+import com.bench.stockmanagement.services.SellingReader;
 import com.bench.stockmanagement.services.dynamo.OrderService;
 import com.bench.stockmanagement.services.dynamo.SellingService;
 import org.springframework.boot.SpringApplication;
@@ -13,27 +15,25 @@ public class StockmanagementApplication {
     public static void main(String[] args) {
         SpringApplication.run(StockmanagementApplication.class, args);
 
-        //For local testing
-        initializeDatabase(true);
     }
 
-    private static void initializeDatabase(boolean shouldRun) {
-        if (!shouldRun) {
-            return;
-        }
-        DynamoDbManager.dropTable("Orders");
-        DynamoDbManager.dropTable("SoldItems");
+    private static void loadSelling() {
+        SellingReader sellingReader = new SellingReader();
+        SellingMapper sellingMapper = new SellingMapper();
+        SellingService sellingService = new SellingService();
 
-        DynamoDbManager.createOrderTable();
-        DynamoDbManager.createSoldItemTable();
-
-        Reader reader = new Reader();
-
-        OrderHandler orderHandler = new OrderHandler(reader, new OrderService());
-        orderHandler.loadOrder();
-
-        SellingHandler sellingHandler = new SellingHandler(reader, new SellingService());
+        SellingHandler sellingHandler = new SellingHandler(sellingReader, sellingMapper, sellingService);
 
         sellingHandler.loadSoldItems();
+    }
+
+    private static void loadOrders() {
+        OrderReader orderReader = new OrderReader();
+        OrderMapper orderMapper = new OrderMapper();
+        OrderService orderService = new OrderService();
+
+        OrderHandler orderHandler = new OrderHandler(orderReader, orderMapper, orderService);
+
+        orderHandler.loadOrder();
     }
 }

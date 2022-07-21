@@ -6,8 +6,9 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.bench.stockmanagement.dataaccess.Receipt;
+import com.bench.stockmanagement.dataaccess.DBReceipt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,33 +31,50 @@ public class SellingService {
         this.mapper = new DynamoDBMapper(client);
     }
 
-    public void saveSoldItems(List<Receipt> soldItems) {
+    public void saveSoldItems(List<DBReceipt> soldItems) {
         soldItems.forEach(mapper::save);
     }
 
-    public List<Receipt> getAReceipt(String receiptNumber) {
-        Receipt queryItem = new Receipt();
-        queryItem.setReceiptNumber(receiptNumber);
+    public PaginatedQueryList<DBReceipt> getAReceipt(String receiptNumber) {
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":receiptNumber",new AttributeValue().withS(receiptNumber));
 
-        DynamoDBQueryExpression<Receipt> query = new DynamoDBQueryExpression<Receipt>().withHashKeyValues(
-                                                                                               queryItem)
-                                                                                       .withLimit(10);
-        return mapper.query(Receipt.class, query);
+        DynamoDBQueryExpression<DBReceipt> queryExpression = new DynamoDBQueryExpression<DBReceipt>()
+                .withIndexName("receipt_index")
+                .withKeyConditionExpression("receiptNumber= :receiptNumber")
+                .withExpressionAttributeValues(eav)
+                .withConsistentRead(false);
+
+        return mapper.query(DBReceipt.class, queryExpression);
     }
 
-    public List<Receipt> getAllReceipt() {
+    public List<DBReceipt> getAllReceipt() {
         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-        return mapper.scan(Receipt.class, scanExpression);
+        return mapper.scan(DBReceipt.class, scanExpression);
     }
 
-    public List<Receipt> getSoldItems(String startDate, String endDate) {
+    public List<DBReceipt> getSoldItemsByDate(String startDate, String endDate) {
         Map<String, AttributeValue> eav = new HashMap<>();
         eav.put(":startDate", new AttributeValue().withS(startDate));
         eav.put(":endDate", new AttributeValue().withS(endDate));
 
         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
-                .withFilterExpression("sellingDate between :startDate and :endDate").withExpressionAttributeValues(eav);
+                .withIndexName("receipt_index")
+                .withFilterExpression("sellingDate between :startDate and :endDate").withExpressionAttributeValues(eav)
+                .withConsistentRead(false);
 
-        return mapper.scan(Receipt.class, scanExpression);
+        return mapper.scan(DBReceipt.class, scanExpression);
+    }
+
+    public List<DBReceipt> getSoldItemsByItemNumber(String itemNumber) {
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":itemNumber", new AttributeValue().withS(itemNumber));
+
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+                .withIndexName("sold_item_index")
+                .withFilterExpression("itemNumber= :itemNumber").withExpressionAttributeValues(eav)
+                .withConsistentRead(false);
+
+        return mapper.scan(DBReceipt.class, scanExpression);
     }
 }

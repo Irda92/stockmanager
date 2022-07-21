@@ -3,9 +3,8 @@ package com.bench.stockmanagement.controller;
 import com.bench.stockmanagement.OrderHandler;
 import com.bench.stockmanagement.ProductHandler;
 import com.bench.stockmanagement.SellingHandler;
-import com.bench.stockmanagement.dataaccess.Order;
-import com.bench.stockmanagement.dataaccess.Receipt;
 import com.bench.stockmanagement.domain.Product;
+import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.services.RateExchanger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +28,8 @@ public class Controller {
         this.sellingHandler = sellingHandler;
         this.productHandler = productHandler;
     }
+
+    //TODO input validation missing
 
     @GetMapping("/rate-exchange/{date}")
     public Double getExchangeRate(@PathVariable String date) {
@@ -54,27 +55,37 @@ public class Controller {
         return orderHandler.getOrders();
     }
 
-    @GetMapping("/orders/{orderId}")
-    public Order getAnOrder(@PathVariable String orderId) {
-        return orderHandler.getOrder(orderId);
+    @GetMapping("/orders/{seller}")
+    public Order getAnOrder(@PathVariable String seller, @RequestParam String orderDate) {
+        return orderHandler.getOrder(seller, orderDate);
     }
 
-    @GetMapping("/products")
+    @GetMapping("/orders/product/{itemNumber}")
+    public List<OrderedProduct> getAnOrder(@PathVariable String itemNumber) {
+        return orderHandler.getOrderedProduct(itemNumber);
+    }
+
+    @GetMapping("/selling/receipt")
     public List<Receipt> getAllReceipts() {
         return sellingHandler.getAllReceipt();
     }
 
-    @GetMapping("/products")
+    @GetMapping("/selling")
     public List<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate) {
         return sellingHandler.getSoldItemBetween(startDate, endDate);
     }
 
-    @GetMapping("/products/{receiptNumber}")
-    public List<Receipt> getReceiptItems(@PathVariable String receiptNumber) {
+    @GetMapping("/selling/receipt/{receiptNumber}")
+    public Receipt getReceiptItems(@PathVariable String receiptNumber) {
         return sellingHandler.getReceipt(receiptNumber);
     }
 
-    @GetMapping("/products/item/{itemNumber}")
+    @GetMapping("/selling/item/{itemNumber}")
+    public List<SoldItem> getSoldItems(@PathVariable String itemNumber) {
+        return sellingHandler.getItems(itemNumber);
+    }
+
+    @GetMapping("/product/{itemNumber}")
     public Product getProduct(@PathVariable String itemNumber) {
         return productHandler.getProduct(itemNumber);
     }
