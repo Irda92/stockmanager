@@ -1,11 +1,8 @@
 package com.bench.stockmanagement.dataaccess;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexRangeKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
-@DynamoDBTable(tableName = "Selling")
+@DynamoDbBean
 public class DBReceipt {
     private String id;
     private String receiptNumber;
@@ -30,7 +27,7 @@ public class DBReceipt {
         this.quantity = quantity;
     }
 
-    @DynamoDBHashKey
+    @DynamoDbPartitionKey
     public String getId() {
         return id;
     }
@@ -39,7 +36,7 @@ public class DBReceipt {
         this.id = id;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "receipt_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "receipt_index")
     public String getReceiptNumber() {
         return receiptNumber;
     }
@@ -48,7 +45,8 @@ public class DBReceipt {
         this.receiptNumber = receiptNumber;
     }
 
-    @DynamoDBIndexRangeKey(attributeName = "sellingDate", globalSecondaryIndexName = "receipt_index")
+    @DynamoDbSecondarySortKey(indexNames = "receipt_period_index")
+    @DynamoDbAttribute("sellingDate")
     public String getDate() {
         return date;
     }
@@ -57,7 +55,7 @@ public class DBReceipt {
         this.date = date;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "sold_item_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "sold_item_index")
     public String getItemNumber() {
         return itemNumber;
     }

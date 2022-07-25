@@ -1,11 +1,8 @@
 package com.bench.stockmanagement.dataaccess;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexRangeKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
-@DynamoDBTable(tableName = "Order")
+@DynamoDbBean
 public class DBOrder {
     private String id;
     private String seller;
@@ -37,17 +34,18 @@ public class DBOrder {
         this.price = price;
     }
 
-    @DynamoDBHashKey
+    @DynamoDbPartitionKey
     public String getId() {
         return id;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "order_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "order_index")
     public String getSeller() {
         return seller;
     }
 
-    @DynamoDBIndexRangeKey(globalSecondaryIndexName = "order_index", attributeName = "orderDate")
+    @DynamoDbSecondarySortKey(indexNames = "order_index")
+    @DynamoDbAttribute("orderDate")
     public String getDate() {
         return date;
     }
@@ -60,7 +58,7 @@ public class DBOrder {
         return currency;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "product_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "product_index")
     public String getItemNumber() {
         return itemNumber;
     }

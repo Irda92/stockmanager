@@ -3,14 +3,12 @@ package com.bench.stockmanagement.controller;
 import com.bench.stockmanagement.OrderHandler;
 import com.bench.stockmanagement.ProductHandler;
 import com.bench.stockmanagement.SellingHandler;
-import com.bench.stockmanagement.domain.Product;
 import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.services.RateExchanger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/testing")
@@ -31,62 +29,59 @@ public class Controller {
 
     //TODO input validation missing
 
-    @GetMapping("/rate-exchange/{date}")
-    public Double getExchangeRate(@PathVariable String date) {
-        LocalDate inputDate = LocalDate.parse(date);
-        return rateExchanger.getRateFor(inputDate);
+//    @GetMapping("/rate-exchange/{date}")
+//    public Mono<Double> getExchangeRate(@PathVariable String date) {
+//        LocalDate inputDate = LocalDate.parse(date);
+//        return rateExchanger.getRateFor(inputDate);
+//    }
+
+    @GetMapping("/save/order")
+    public Mono<Result> saveOrder() {
+        return orderHandler.loadOrders();
+    }
+//
+    @GetMapping("/save/soldItems")
+    public Mono<Result> saveSoldProducts() {
+        return sellingHandler.loadSoldItems();
     }
 
-//    Probably these endpoints will be used later
-//    @GetMapping("/save/order")
-//    public String saveOrder() {
-//        orderHandler.loadOrder();
-//        return "Orders saved!";
-//    }
-//
-//    @GetMapping("/save/soldItems}")
-//    public String saveSoldProducts() {
-//        sellingHandler.loadSoldItems();
-//        return "Sold items saved!";
-//    }
-
     @GetMapping("/orders")
-    public List<Order> getOrders() {
-        return orderHandler.getOrders();
+    public Flux<Order> getOrders() {
+        return orderHandler.getAllOrders();
     }
 
     @GetMapping("/orders/{seller}")
-    public Order getAnOrder(@PathVariable String seller, @RequestParam String orderDate) {
+    public Mono<Order> getAnOrder(@PathVariable String seller, @RequestParam String orderDate) {
         return orderHandler.getOrder(seller, orderDate);
     }
 
     @GetMapping("/orders/product/{itemNumber}")
-    public List<OrderedProduct> getAnOrder(@PathVariable String itemNumber) {
+    public Flux<OrderedProduct> getAnOrder(@PathVariable String itemNumber) {
         return orderHandler.getOrderedProduct(itemNumber);
     }
 
     @GetMapping("/selling/receipt")
-    public List<Receipt> getAllReceipts() {
+    public Flux<Receipt> getAllReceipts() {
         return sellingHandler.getAllReceipt();
     }
 
     @GetMapping("/selling")
-    public List<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate) {
+    public Flux<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate) {
         return sellingHandler.getSoldItemBetween(startDate, endDate);
     }
 
     @GetMapping("/selling/receipt/{receiptNumber}")
-    public Receipt getReceiptItems(@PathVariable String receiptNumber) {
+    public Mono<Receipt> getReceiptItems(@PathVariable String receiptNumber) {
         return sellingHandler.getReceipt(receiptNumber);
     }
 
     @GetMapping("/selling/item/{itemNumber}")
-    public List<SoldItem> getSoldItems(@PathVariable String itemNumber) {
+    public Flux<SoldItem> getSoldItems(@PathVariable String itemNumber) {
         return sellingHandler.getItems(itemNumber);
     }
 
     @GetMapping("/product/{itemNumber}")
-    public Product getProduct(@PathVariable String itemNumber) {
+    public Mono<Product> getProduct(@PathVariable String itemNumber) {
         return productHandler.getProduct(itemNumber);
     }
 }

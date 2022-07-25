@@ -5,6 +5,7 @@ import com.bench.stockmanagement.dataaccess.DBReceipt;
 import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.services.RateExchanger;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 import java.util.*;

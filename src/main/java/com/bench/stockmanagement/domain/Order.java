@@ -13,6 +13,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class Order {
+    public static final Order EMPTY = Order.builder().build();
+
     private String seller;
     private LocalDate date;
     private Double totalShippingCost;
