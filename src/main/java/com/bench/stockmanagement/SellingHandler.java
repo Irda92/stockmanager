@@ -1,6 +1,6 @@
 package com.bench.stockmanagement;
 
-import com.bench.stockmanagement.dataaccess.SoldItem;
+import com.bench.stockmanagement.dataaccess.Receipt;
 import com.bench.stockmanagement.services.Reader;
 import com.bench.stockmanagement.services.dynamo.SellingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,20 @@ public class SellingHandler {
         this.sellingService = sellingService;
     }
 
-    public void loadSoldItems(String fileName) {
-        List<SoldItem> soldItems = reader.readSoldItems(fileName);
+    public void loadSoldItems() {
+        List<Receipt> soldItems = reader.readSoldItems();
         sellingService.saveSoldItems(soldItems);
+    }
+
+    public List<Receipt> getReceipt(String receiptNumber) {
+        return sellingService.getAReceipt(receiptNumber);
+    }
+
+    public List<Receipt> getAllReceipt() {
+        return sellingService.getAllReceipt();
+    }
+
+    public List<Receipt> getSoldItemBetween(String startDate, String endDate) {
+        return sellingService.getSoldItems(startDate, endDate);
     }
 }
