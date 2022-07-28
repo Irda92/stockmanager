@@ -1,7 +1,9 @@
 package com.bench.stockmanagement.dataaccess;
 
+import lombok.ToString;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
+@ToString
 @DynamoDbBean
 public class DBReceipt {
     private String id;
@@ -16,7 +18,8 @@ public class DBReceipt {
     public DBReceipt() {
     }
 
-    public DBReceipt(String id, String receiptNumber, String date, String itemNumber, String hungarianName, String attribute, Integer price, Integer quantity) {
+    public DBReceipt(String id, String receiptNumber, String date, String itemNumber, String hungarianName,
+            String attribute, Integer price, Integer quantity) {
         this.id = id;
         this.receiptNumber = receiptNumber;
         this.date = date;
@@ -45,7 +48,7 @@ public class DBReceipt {
         this.receiptNumber = receiptNumber;
     }
 
-    @DynamoDbSecondarySortKey(indexNames = "receipt_period_index")
+    @DynamoDbSecondarySortKey(indexNames = "sold_item_index")
     @DynamoDbAttribute("sellingDate")
     public String getDate() {
         return date;

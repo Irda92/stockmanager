@@ -1,7 +1,9 @@
 package com.bench.stockmanagement.dataaccess;
 
+import lombok.ToString;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
+@ToString
 @DynamoDbBean
 public class DBOrder {
     private String id;

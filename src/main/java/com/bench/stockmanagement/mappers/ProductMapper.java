@@ -1,14 +1,17 @@
 package com.bench.stockmanagement.mappers;
 
 import com.bench.stockmanagement.dataaccess.DBOrder;
+import com.bench.stockmanagement.dataaccess.DBProduct;
 import com.bench.stockmanagement.dataaccess.DBReceipt;
 import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.services.RateExchanger;
+import io.netty.util.internal.StringUtil;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
+import software.amazon.awssdk.utils.Pair;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
@@ -16,6 +19,78 @@ public class ProductMapper {
 
     public ProductMapper(RateExchanger rateExchanger) {
         this.rateExchanger = rateExchanger;
+    }
+
+    public List<DBProduct> mapProduct(List<Order> orders) {
+        List<DBProduct> dbProducts = new ArrayList<>();
+
+        List<String> itemNumbers = orders.stream()
+                .map(Order::getProducts)
+                .flatMap(List::stream)
+                .map(OrderedProduct::getItemNumber)
+                .distinct()
+                .collect(Collectors.toList());
+
+        for (String in : itemNumbers) {
+            List<Order> ordersWithItemNumber = orders.stream()
+                    .filter(o -> o.getProducts()
+                            .stream()
+                            .anyMatch(orderedProduct -> orderedProduct.getItemNumber().equals(in)))
+                    .collect(Collectors.toList());
+
+            List<String> attributes = ordersWithItemNumber.stream()
+                    .map(Order::getProducts)
+                    .flatMap(List::stream)
+                    .filter(orderedProduct -> orderedProduct.getItemNumber().equals(in))
+                    .map(OrderedProduct::getAttribute)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            Map<String, Double> costMap = ordersWithItemNumber.stream()
+                    .collect(Collectors.toMap(o -> o.getDate().toString(), o -> mapCost(o, in)));
+            Map<String, Integer> stockMap = attributes.stream().collect(Collectors.toMap(
+                    a -> StringUtil.isNullOrEmpty(a) ? "all" : a, x -> 0));
+
+            dbProducts.add(new DBProduct(in, null, stockMap, stockMap, costMap));
+        }
+        return dbProducts;
+    }
+
+    public DBProduct mapProduct(ProductStockData productStockData) {
+        String itemNumber = productStockData.getItemNumber();
+        Integer lastSellingPrice = productStockData.getActualPrice();
+        String attribute = productStockData.getAttribute();
+        Map<String, Integer> minStock = getStockMap(attribute, productStockData.getMinStock());
+        Map<String, Integer> maxStock = getStockMap(attribute, productStockData.getMaxStock());
+        Map<String, Double> costs = getDbProductCosts(productStockData);
+        return new DBProduct(itemNumber, lastSellingPrice, minStock, maxStock, costs);
+    }
+
+    public List<ProductStockData> mapStockData(DBProduct product) {
+        String itemNumber = product.getItemNumber();
+        Integer lastSellingPrice = product.getLastSellingPrice();
+        Map<String, Integer> minStockMap = product.getMinStock();
+        Map<String, Integer> maxStockMap = product.getMaxStock();
+
+        Pair<LocalDate, Double> purchaseCost = mapPurchaseCost(product.getCosts());
+        List<ProductStockData> result = new ArrayList<>();
+
+        for (String key : minStockMap.keySet()) {
+            int maxStock = maxStockMap.get(key);
+            int minStock = minStockMap.get(key);
+
+            ProductStockData productStockData = ProductStockData.builder()
+                    .itemNumber(itemNumber)
+                    .attribute(key)
+                    .minStock(minStock)
+                    .maxStock(maxStock)
+                    .actualPrice(lastSellingPrice)
+                    .lastPurchaseCost(purchaseCost.right())
+                    .lastPurchaseDate(purchaseCost.left())
+                    .build();
+            result.add(productStockData);
+        }
+        return result;
     }
 
     public Product map(String itemNumber, List<DBOrder> orderedProducts, List<DBReceipt> soldItems) {
@@ -29,6 +104,43 @@ public class ProductMapper {
 
         return new Product(itemNumber, englishName, hungarianName, quantity, sellingInformationList,
                 purchaseInformationList, actualProfit);
+    }
+
+    private Double mapCost(Order order, String in) {
+        double shippingCost = order.getTotalShippingCost() / order.getTotalProductCount();
+        Double price = order.getProducts()
+                .stream()
+                .filter(op -> op.getItemNumber().equals(in)).findFirst().get().getPrice();
+        return shippingCost + price;
+    }
+
+    private Map<String, Double> getDbProductCosts(ProductStockData productStockData) {
+        String date = Optional.ofNullable(productStockData.getLastPurchaseDate()).map(LocalDate::toString).orElse(null);
+        Double purchaseCost = productStockData.getLastPurchaseCost();
+        if (date == null && purchaseCost == null) {
+            return null;
+        }
+        return Collections.singletonMap(date, purchaseCost);
+    }
+
+    private Map<String, Integer> getStockMap(String attribute, Integer stockValue) {
+        if (attribute == null && stockValue == null) {
+            return null;
+        }
+        return Map.of(Objects.requireNonNullElse(attribute, "all"), stockValue);
+    }
+
+    private Pair<LocalDate, Double> mapPurchaseCost(Map<String, Double> dbProductCost) {
+        List<String> sortedKeys = new ArrayList<>(dbProductCost.keySet());
+        sortedKeys.sort(Comparator.reverseOrder());
+
+        String lastPurchaseDate = sortedKeys.get(0);
+        LocalDate date = LocalDate.parse(lastPurchaseDate);
+
+        Double usdRate = rateExchanger.getRateFor(date);
+
+        double purchaseCost = dbProductCost.get(lastPurchaseDate) * usdRate;
+        return Pair.of(date, purchaseCost);
     }
 
     private int calculateActualProfit(List<PurchaseInformation> purchaseInformationList, List<SellingInformation> sellingInformationList) {

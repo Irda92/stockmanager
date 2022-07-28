@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/testing")
 public class Controller {
@@ -29,20 +31,19 @@ public class Controller {
 
     //TODO input validation missing
 
-//    @GetMapping("/rate-exchange/{date}")
-//    public Mono<Double> getExchangeRate(@PathVariable String date) {
-//        LocalDate inputDate = LocalDate.parse(date);
-//        return rateExchanger.getRateFor(inputDate);
-//    }
-
     @GetMapping("/save/order")
     public Mono<Result> saveOrder() {
         return orderHandler.loadOrders();
     }
-//
+
     @GetMapping("/save/soldItems")
     public Mono<Result> saveSoldProducts() {
         return sellingHandler.loadSoldItems();
+    }
+
+    @GetMapping("/save/products")
+    public Mono<Result> saveProducts() {
+        return productHandler.saveProducts();
     }
 
     @GetMapping("/orders")
@@ -66,8 +67,8 @@ public class Controller {
     }
 
     @GetMapping("/selling")
-    public Flux<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate) {
-        return sellingHandler.getSoldItemBetween(startDate, endDate);
+    public Flux<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String... itemNumber) {
+        return sellingHandler.getSoldItemBetween(startDate, endDate, itemNumber);
     }
 
     @GetMapping("/selling/receipt/{receiptNumber}")
@@ -83,5 +84,15 @@ public class Controller {
     @GetMapping("/product/{itemNumber}")
     public Mono<Product> getProduct(@PathVariable String itemNumber) {
         return productHandler.getProduct(itemNumber);
+    }
+
+    @GetMapping("/product/stock/{itemNumber}")
+    public Mono<List<ProductStockData>> getProductStockData(@PathVariable String itemNumber) {
+        return productHandler.getProductByItemNumber(itemNumber);
+    }
+
+    @PostMapping("update/product/stock")
+    public Mono<Result> updateProductStockData(@RequestBody ProductStockData productStockData) {
+        return productHandler.updateProduct(productStockData);
     }
 }
