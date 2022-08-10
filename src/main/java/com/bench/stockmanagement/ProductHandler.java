@@ -19,10 +19,7 @@ import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.bench.stockmanagement.domain.Result.FAIL;
 import static com.bench.stockmanagement.domain.Result.SUCCESS;
@@ -59,7 +56,7 @@ public class ProductHandler {
     // Get product by itemNumber
     // Item number, how many is expected in stock min/max, purchase prices
     public Mono<List<ProductStockData>> getProductByItemNumber(String itemNumber) {
-        return Mono.fromFuture(productRepository.getProductByItemNumber(itemNumber))
+        return Mono.fromFuture(() -> productRepository.getProductByItemNumber(itemNumber))
                 .log()
                 .map(productMapper::mapStockData);
     }
@@ -72,13 +69,11 @@ public class ProductHandler {
 
         Flux<DBOrder> ordersFlux = Flux.from(ordersByItemNumber)
                 .log()
-                .map(Page::items)
-                .flatMap(Flux::fromIterable);
+                .flatMapIterable(Page::items);
 
         Flux<DBReceipt> receiptsFlux = Flux.from(soldItemsByItemNumber)
                 .log()
-                .map(Page::items)
-                .flatMap(Flux::fromIterable);
+                .flatMapIterable(Page::items);
 
         return Mono.zip(ordersFlux.collectList(),
                         receiptsFlux.collectList()).log()
@@ -89,9 +84,9 @@ public class ProductHandler {
     public Mono<Result> updateProduct(ProductStockData productStockData) {
         DBProduct dbProduct = productMapper.mapProduct(productStockData);
         return Mono.fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
-                .doOnSuccess(Objects::requireNonNull)
-                .doOnNext(product -> productRepository.updateProduct(mergeDbProducts(product, dbProduct)))
-                .doOnSuccess(Objects::requireNonNull)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+                .flatMap(product -> Mono.fromFuture(productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
                 .thenReturn(SUCCESS)
                 .onErrorReturn(FAIL);
     }
@@ -102,21 +97,25 @@ public class ProductHandler {
         Integer lastSellingPrice = Optional.ofNullable(newProduct.getLastSellingPrice())
                 .orElse(oldProduct.getLastSellingPrice());
 
-        Map<String, Double> costs = oldProduct.getCosts();
+        Map<String, Double> costs = new HashMap<>();
+        costs.putAll(oldProduct.getCosts());
         if (newProduct.getCosts() != null) {
             costs.putAll(newProduct.getCosts());
         }
 
         Map<String, Integer> minStock = getStockMap(oldProduct.getMinStock(), newProduct.getMinStock());
-        Map<String, Integer> maxStock = getStockMap(oldProduct.getMaxStock(),newProduct.getMaxStock());
+        Map<String, Integer> maxStock = getStockMap(oldProduct.getMaxStock(), newProduct.getMaxStock());
 
         return new DBProduct(itemNumber, lastSellingPrice, minStock, maxStock, costs);
     }
 
     private Map<String, Integer> getStockMap(Map<String, Integer> oldStock, Map<String, Integer> newStock) {
+        Map<String, Integer> stock = new HashMap<>();
+        stock.putAll(oldStock);
+
         if (newStock != null) {
-            oldStock.putAll(newStock);
+            stock.putAll(newStock);
         }
-        return oldStock;
+        return stock;
     }
 }

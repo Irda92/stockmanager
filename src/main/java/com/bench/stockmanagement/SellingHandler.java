@@ -67,8 +67,7 @@ public class SellingHandler {
     // Get receipts between dates which contain the given item numbers
     public Flux<Receipt> getSoldItemBetween(String startDate, String endDate, String... itemNumber) {
         return Flux.fromIterable(List.of(itemNumber)).log()
-                .map(in -> sellingRepository.getSoldItemByDate(in, startDate, endDate))
-                .flatMap(Flux::from)
+                .flatMap(in -> Flux.from(sellingRepository.getSoldItemByDate(in, startDate, endDate)))
                 .map(Page::items)
                 .flatMapIterable(mapper::mapReceipts);
     }

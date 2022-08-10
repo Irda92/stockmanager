@@ -40,7 +40,8 @@ public class OrderHandler {
 
         return Flux.fromIterable(dbOrders)
                 .doOnNext(orderRepository::saveOrders)
-                .then(Mono.just(Result.SUCCESS))
+                .collectList()
+                .thenReturn(Result.SUCCESS)
                 .onErrorReturn(Result.FAIL);
     }
 
