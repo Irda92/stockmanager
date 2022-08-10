@@ -70,11 +70,12 @@ public class SellingService {
         Map<String, AttributeValue> eav = new HashMap<>();
         eav.put(":itemNumber", new AttributeValue().withS(itemNumber));
 
-        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+        DynamoDBQueryExpression<DBReceipt> scanExpression = new DynamoDBQueryExpression()
                 .withIndexName("sold_item_index")
-                .withFilterExpression("itemNumber= :itemNumber").withExpressionAttributeValues(eav)
+                .withKeyConditionExpression("itemNumber= :itemNumber")
+                .withExpressionAttributeValues(eav)
                 .withConsistentRead(false);
 
-        return mapper.scan(DBReceipt.class, scanExpression);
+        return mapper.query(DBReceipt.class, scanExpression);
     }
 }
