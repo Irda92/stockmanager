@@ -1,5 +1,6 @@
 package com.bench.stockmanagement.domain;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,11 +13,8 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-public class Order {
-    private String seller;
+public class Receipt {
+    private String receiptNumber;
     private LocalDate date;
-    private Double totalShippingCost;
-    private Integer totalProductCount;
-    private String currency;
-    private List<OrderedProduct> products;
+    private List<SoldItem> items;
 }
