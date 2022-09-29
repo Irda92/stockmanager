@@ -3,12 +3,10 @@ package com.bench.stockmanagement;
 import com.bench.stockmanagement.dataaccess.DBOrder;
 import com.bench.stockmanagement.dataaccess.DBProduct;
 import com.bench.stockmanagement.dataaccess.DBReceipt;
-import com.bench.stockmanagement.domain.Order;
-import com.bench.stockmanagement.domain.Product;
-import com.bench.stockmanagement.domain.ProductStockData;
-import com.bench.stockmanagement.domain.Result;
+import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.mappers.ProductMapper;
 import com.bench.stockmanagement.services.OrderReader;
+import com.bench.stockmanagement.services.SellingReader;
 import com.bench.stockmanagement.services.dynamo.OrderRepository;
 import com.bench.stockmanagement.services.dynamo.ProductRepository;
 import com.bench.stockmanagement.services.dynamo.SellingRepository;
@@ -27,15 +25,18 @@ import static com.bench.stockmanagement.domain.Result.SUCCESS;
 @Component
 public class ProductHandler {
     private final OrderReader reader;
+    private final SellingReader sellingReader;
     private final ProductMapper productMapper;
     private final OrderRepository orderRepository;
     private final SellingRepository sellingRepository;
     private final ProductRepository productRepository;
 
     @Autowired
-    public ProductHandler(OrderReader reader, ProductMapper productMapper, OrderRepository orderRepository,
-            SellingRepository sellingRepository, ProductRepository productRepository) {
+    public ProductHandler(OrderReader reader, SellingReader sellingReader, ProductMapper productMapper,
+                          OrderRepository orderRepository, SellingRepository sellingRepository,
+                          ProductRepository productRepository) {
         this.reader = reader;
+        this.sellingReader = sellingReader;
         this.productMapper = productMapper;
         this.orderRepository = orderRepository;
         this.sellingRepository = sellingRepository;
@@ -45,6 +46,48 @@ public class ProductHandler {
     // Save products
     public Mono<Result> saveProducts() {
         List<Order> orders = reader.readOrder();
+        List<Receipt> receipts = sellingReader.readSoldItems();
+        List<DBProduct> dbProducts = productMapper.mapProduct(orders, receipts);
+
+        return Flux.fromIterable(dbProducts).log()
+                .doOnNext(productRepository::saveProducts)
+                .then(Mono.just(SUCCESS))
+                .onErrorReturn(FAIL);
+    }
+
+    public Mono<Result> updateProductsByReceipts() {
+        List<Receipt> receipts = sellingReader.readSoldItems();
+        String itemNumber = receipts.getItems().stream().map(SoldItem::getItemNumber).findFirst().get();
+
+
+        Flux.fromIterable(receipts).log().flatMapIterable(Receipt::getItems);
+
+
+        fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+                .flatMap(product -> Mono.fromFuture(
+                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
+                .thenReturn(SUCCESS)
+                .onErrorReturn(FAIL);
+        List<DBProduct> dbProducts = productMapper.mapProduct(orders);
+
+        return Flux.fromIterable(dbProducts).log()
+                .doOnNext(productRepository::saveProducts)
+                .then(Mono.just(SUCCESS))
+                .onErrorReturn(FAIL);
+    }
+
+    public Mono<Result> xxxxxxxxxxx(Receipt receipt) {
+
+
+        Mono.fromFuture(productRepository.getProductByItemNumber(itemNumber))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+                .flatMap(product -> Mono.fromFuture(
+                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
+                .thenReturn(SUCCESS)
+                .onErrorReturn(FAIL);
         List<DBProduct> dbProducts = productMapper.mapProduct(orders);
 
         return Flux.fromIterable(dbProducts).log()
@@ -59,6 +102,20 @@ public class ProductHandler {
         return Mono.fromFuture(() -> productRepository.getProductByItemNumber(itemNumber))
                 .log()
                 .map(productMapper::mapStockData);
+    }
+
+    public Flux<ProductStockData> getAllProductStockData() {
+        return Flux.from(productRepository.getAllProduct())
+                .log()
+                .flatMapIterable(Page::items)
+                .flatMapIterable(productMapper::mapStockData);
+    }
+
+    public Flux<Product> getAllProduct() {
+        return Flux.from(productRepository.getAllProduct())
+                .flatMapIterable(Page::items)
+                .map(product -> getProduct(product.getItemNumber()))
+                .flatMap(Mono::flux);
     }
 
     // Get all information about a product by itemNumber
@@ -80,12 +137,24 @@ public class ProductHandler {
                 .map(objects -> productMapper.map(itemNumber, objects.getT1(), objects.getT2()));
     }
 
+    public Flux<Product> getAllSoldItemBetween(String startDate, String endDate) {
+
+        return Flux.from(productRepository.getAllProduct())
+                .flatMapIterable(Page::items)
+                .flatMap(dbProduct ->
+                    Flux.from(sellingRepository.getSoldItemByDate(dbProduct.getItemNumber(), startDate, endDate))
+                            .map(Page::items)
+                            .map(receipts -> productMapper.mapFromReceipt(dbProduct.getItemNumber(), receipts, dbProduct.getCosts()))
+                ).filter(p -> p.getItemNumber() != null);
+    }
+
     // Update the purchase price, stock information
     public Mono<Result> updateProduct(ProductStockData productStockData) {
         DBProduct dbProduct = productMapper.mapProduct(productStockData);
         return Mono.fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
-                .flatMap(product -> Mono.fromFuture(productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+                .flatMap(product -> Mono.fromFuture(
+                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
                 .thenReturn(SUCCESS)
                 .onErrorReturn(FAIL);
@@ -97,6 +166,21 @@ public class ProductHandler {
         Integer lastSellingPrice = Optional.ofNullable(newProduct.getLastSellingPrice())
                 .orElse(oldProduct.getLastSellingPrice());
 
+        String englishName = Optional.ofNullable(newProduct.getEnglishName())
+                .orElse(oldProduct.getEnglishName());
+
+        String hungarianName = Optional.ofNullable(newProduct.getHungarianName())
+                .orElse(oldProduct.getHungarianName());
+
+        Map<String, Integer> actualStock = new HashMap<>();
+        actualStock.putAll(oldProduct.getActualStock());
+        for (String key: newProduct.getActualStock().keySet()) {
+            Integer stock = oldProduct.getActualStock().get(key);
+            Integer orderedQuantity = newProduct.getActualStock().get(key);
+            int newQuantity = stock + orderedQuantity;
+            actualStock.put(key, newQuantity);
+        }
+
         Map<String, Double> costs = new HashMap<>();
         costs.putAll(oldProduct.getCosts());
         if (newProduct.getCosts() != null) {
@@ -106,7 +190,7 @@ public class ProductHandler {
         Map<String, Integer> minStock = getStockMap(oldProduct.getMinStock(), newProduct.getMinStock());
         Map<String, Integer> maxStock = getStockMap(oldProduct.getMaxStock(), newProduct.getMaxStock());
 
-        return new DBProduct(itemNumber, lastSellingPrice, minStock, maxStock, costs);
+        return new DBProduct(itemNumber, englishName, hungarianName, actualStock, minStock, maxStock, costs, lastSellingPrice);
     }
 
     private Map<String, Integer> getStockMap(Map<String, Integer> oldStock, Map<String, Integer> newStock) {

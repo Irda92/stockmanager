@@ -6,6 +6,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.PagePublisher;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -21,6 +22,10 @@ public class ProductRepository {
 
     public CompletableFuture<Void> saveProducts(DBProduct product) {
         return table.putItem(product);
+    }
+
+    public PagePublisher<DBProduct> getAllProduct() {
+        return table.scan();
     }
 
     public CompletableFuture<DBProduct> getProductByItemNumber(String itemNumber) {

@@ -10,21 +10,28 @@ import java.util.Map;
 @DynamoDbBean
 public class DBProduct {
     private String itemNumber;
-    private Integer lastSellingPrice;
+    private String englishName;
+    private String hungarianName;
+    private Map<String, Integer> actualStock;
     private Map<String, Integer> minStock;
     private Map<String, Integer> maxStock;
     private Map<String, Double> costs;
+    private Integer lastSellingPrice;
 
     public DBProduct() {
     }
 
-    public DBProduct(String itemNumber, Integer lastSellingPrice, Map<String, Integer> minStock,
-            Map<String, Integer> maxStock, Map<String, Double> costs) {
+    public DBProduct(String itemNumber, String englishName, String hungarianName, Map<String, Integer> actualStock,
+                     Map<String, Integer> minStock, Map<String, Integer> maxStock, Map<String, Double> costs,
+                     Integer lastSellingPrice) {
         this.itemNumber = itemNumber;
-        this.lastSellingPrice = lastSellingPrice;
+        this.englishName = englishName;
+        this.hungarianName = hungarianName;
+        this.actualStock = actualStock;
         this.minStock = minStock;
         this.maxStock = maxStock;
         this.costs = costs;
+        this.lastSellingPrice = lastSellingPrice;
     }
 
     @DynamoDbPartitionKey
@@ -34,6 +41,30 @@ public class DBProduct {
 
     public void setItemNumber(String itemNumber) {
         this.itemNumber = itemNumber;
+    }
+
+    public String getEnglishName() {
+        return englishName;
+    }
+
+    public void setEnglishName(String englishName) {
+        this.englishName = englishName;
+    }
+
+    public String getHungarianName() {
+        return hungarianName;
+    }
+
+    public void setHungarianName(String hungarianName) {
+        this.hungarianName = hungarianName;
+    }
+
+    public Map<String, Integer> getActualStock() {
+        return actualStock;
+    }
+
+    public void setActualStock(Map<String, Integer> actualStock) {
+        this.actualStock = actualStock;
     }
 
     public Integer getLastSellingPrice() {

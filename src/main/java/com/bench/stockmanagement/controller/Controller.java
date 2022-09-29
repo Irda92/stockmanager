@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/testing")
+@CrossOrigin(origins="http://localhost:3000")
 public class Controller {
     private final RateExchanger rateExchanger;
     private final OrderHandler orderHandler;
@@ -84,6 +85,21 @@ public class Controller {
     @GetMapping("/product/{itemNumber}")
     public Mono<Product> getProduct(@PathVariable String itemNumber) {
         return productHandler.getProduct(itemNumber);
+    }
+
+    @GetMapping("/product/all")
+    public Flux<Product> getAllProduct() {
+        return productHandler.getAllProduct();
+    }
+
+    @GetMapping("/product/all/in-a-period")
+    public Flux<Product> getAllProduct(@RequestParam String startDate, @RequestParam String endDate) {
+        return productHandler.getAllSoldItemBetween(startDate, endDate);
+    }
+
+    @GetMapping("/product/stock")
+    public Flux<ProductStockData> getAllProductStockData() {
+        return productHandler.getAllProductStockData();
     }
 
     @GetMapping("/product/stock/{itemNumber}")
