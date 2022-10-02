@@ -23,7 +23,8 @@ import static com.bench.stockmanagement.domain.Result.FAIL;
 import static com.bench.stockmanagement.domain.Result.SUCCESS;
 
 @Component
-public class ProductHandler {
+public class ReactiveProductHandler
+{
     private final OrderReader reader;
     private final SellingReader sellingReader;
     private final ProductMapper productMapper;
@@ -32,9 +33,9 @@ public class ProductHandler {
     private final ProductRepository productRepository;
 
     @Autowired
-    public ProductHandler(OrderReader reader, SellingReader sellingReader, ProductMapper productMapper,
-                          OrderRepository orderRepository, SellingRepository sellingRepository,
-                          ProductRepository productRepository) {
+    public ReactiveProductHandler(OrderReader reader, SellingReader sellingReader, ProductMapper productMapper,
+                                  OrderRepository orderRepository, SellingRepository sellingRepository,
+                                  ProductRepository productRepository) {
         this.reader = reader;
         this.sellingReader = sellingReader;
         this.productMapper = productMapper;

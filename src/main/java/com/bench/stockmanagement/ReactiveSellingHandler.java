@@ -20,13 +20,14 @@ import static com.bench.stockmanagement.domain.Result.FAIL;
 import static com.bench.stockmanagement.domain.Result.SUCCESS;
 
 @Component
-public class SellingHandler {
+public class ReactiveSellingHandler
+{
     private final SellingReader reader;
     private final SellingMapper mapper;
     private final SellingRepository sellingRepository;
 
     @Autowired
-    public SellingHandler(SellingReader reader, SellingMapper mapper, SellingRepository sellingRepository) {
+    public ReactiveSellingHandler(SellingReader reader, SellingMapper mapper, SellingRepository sellingRepository) {
         this.reader = reader;
         this.mapper = mapper;
         this.sellingRepository = sellingRepository;

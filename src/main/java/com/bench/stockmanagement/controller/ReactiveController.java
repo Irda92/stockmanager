@@ -1,8 +1,8 @@
 package com.bench.stockmanagement.controller;
 
-import com.bench.stockmanagement.OrderHandler;
-import com.bench.stockmanagement.ProductHandler;
-import com.bench.stockmanagement.SellingHandler;
+import com.bench.stockmanagement.ReactiveOrderHandler;
+import com.bench.stockmanagement.ReactiveProductHandler;
+import com.bench.stockmanagement.ReactiveSellingHandler;
 import com.bench.stockmanagement.domain.*;
 import com.bench.stockmanagement.services.RateExchanger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,100 +15,101 @@ import java.util.List;
 @RestController
 @RequestMapping("/testing")
 @CrossOrigin(origins="http://localhost:3000")
-public class Controller {
+public class ReactiveController
+{
     private final RateExchanger rateExchanger;
-    private final OrderHandler orderHandler;
-    private final SellingHandler sellingHandler;
-    private final ProductHandler productHandler;
+    private final ReactiveOrderHandler reactiveOrderHandler;
+    private final ReactiveSellingHandler reactiveSellingHandler;
+    private final ReactiveProductHandler reactiveProductHandler;
 
     @Autowired
-    public Controller(RateExchanger rateExchanger, OrderHandler orderHandler,
-                      SellingHandler sellingHandler, ProductHandler productHandler) {
+    public ReactiveController(RateExchanger rateExchanger, ReactiveOrderHandler reactiveOrderHandler,
+                              ReactiveSellingHandler reactiveSellingHandler, ReactiveProductHandler reactiveProductHandler) {
         this.rateExchanger = rateExchanger;
-        this.orderHandler = orderHandler;
-        this.sellingHandler = sellingHandler;
-        this.productHandler = productHandler;
+        this.reactiveOrderHandler = reactiveOrderHandler;
+        this.reactiveSellingHandler = reactiveSellingHandler;
+        this.reactiveProductHandler = reactiveProductHandler;
     }
 
     //TODO input validation missing
 
     @GetMapping("/save/order")
     public Mono<Result> saveOrder() {
-        return orderHandler.loadOrders();
+        return reactiveOrderHandler.loadOrders();
     }
 
     @GetMapping("/save/soldItems")
     public Mono<Result> saveSoldProducts() {
-        return sellingHandler.loadSoldItems();
+        return reactiveSellingHandler.loadSoldItems();
     }
 
     @GetMapping("/save/products")
     public Mono<Result> saveProducts() {
-        return productHandler.saveProducts();
+        return reactiveProductHandler.saveProducts();
     }
 
     @GetMapping("/orders")
     public Flux<Order> getOrders() {
-        return orderHandler.getAllOrders();
+        return reactiveOrderHandler.getAllOrders();
     }
 
     @GetMapping("/orders/{seller}")
     public Mono<Order> getAnOrder(@PathVariable String seller, @RequestParam String orderDate) {
-        return orderHandler.getOrder(seller, orderDate);
+        return reactiveOrderHandler.getOrder(seller, orderDate);
     }
 
     @GetMapping("/orders/product/{itemNumber}")
     public Flux<OrderedProduct> getAnOrder(@PathVariable String itemNumber) {
-        return orderHandler.getOrderedProduct(itemNumber);
+        return reactiveOrderHandler.getOrderedProduct(itemNumber);
     }
 
     @GetMapping("/selling/receipt")
     public Flux<Receipt> getAllReceipts() {
-        return sellingHandler.getAllReceipt();
+        return reactiveSellingHandler.getAllReceipt();
     }
 
     @GetMapping("/selling")
     public Flux<Receipt> getItemsBetween(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String... itemNumber) {
-        return sellingHandler.getSoldItemBetween(startDate, endDate, itemNumber);
+        return reactiveSellingHandler.getSoldItemBetween(startDate, endDate, itemNumber);
     }
 
     @GetMapping("/selling/receipt/{receiptNumber}")
     public Mono<Receipt> getReceiptItems(@PathVariable String receiptNumber) {
-        return sellingHandler.getReceipt(receiptNumber);
+        return reactiveSellingHandler.getReceipt(receiptNumber);
     }
 
     @GetMapping("/selling/item/{itemNumber}")
     public Flux<SoldItem> getSoldItems(@PathVariable String itemNumber) {
-        return sellingHandler.getItems(itemNumber);
+        return reactiveSellingHandler.getItems(itemNumber);
     }
 
     @GetMapping("/product/{itemNumber}")
     public Mono<Product> getProduct(@PathVariable String itemNumber) {
-        return productHandler.getProduct(itemNumber);
+        return reactiveProductHandler.getProduct(itemNumber);
     }
 
     @GetMapping("/product/all")
     public Flux<Product> getAllProduct() {
-        return productHandler.getAllProduct();
+        return reactiveProductHandler.getAllProduct();
     }
 
     @GetMapping("/product/all/in-a-period")
     public Flux<Product> getAllProduct(@RequestParam String startDate, @RequestParam String endDate) {
-        return productHandler.getAllSoldItemBetween(startDate, endDate);
+        return reactiveProductHandler.getAllSoldItemBetween(startDate, endDate);
     }
 
     @GetMapping("/product/stock")
     public Flux<ProductStockData> getAllProductStockData() {
-        return productHandler.getAllProductStockData();
+        return reactiveProductHandler.getAllProductStockData();
     }
 
     @GetMapping("/product/stock/{itemNumber}")
     public Mono<List<ProductStockData>> getProductStockData(@PathVariable String itemNumber) {
-        return productHandler.getProductByItemNumber(itemNumber);
+        return reactiveProductHandler.getProductByItemNumber(itemNumber);
     }
 
     @PostMapping("update/product/stock")
     public Mono<Result> updateProductStockData(@RequestBody ProductStockData productStockData) {
-        return productHandler.updateProduct(productStockData);
+        return reactiveProductHandler.updateProduct(productStockData);
     }
 }

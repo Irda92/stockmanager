@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class OrderHandler {
+public class ReactiveOrderHandler
+{
     private final OrderReader reader;
     private final OrderMapper mapper;
     private final OrderRepository orderRepository;
 
     @Autowired
-    public OrderHandler(OrderReader reader, OrderMapper mapper, OrderRepository orderRepository) {
+    public ReactiveOrderHandler(OrderReader reader, OrderMapper mapper, OrderRepository orderRepository) {
         this.reader = reader;
         this.mapper = mapper;
         this.orderRepository = orderRepository;
