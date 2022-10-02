@@ -1,11 +1,10 @@
 package com.bench.stockmanagement.dataaccess;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexRangeKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import lombok.ToString;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
-@DynamoDBTable(tableName = "Selling")
+@ToString
+@DynamoDbBean
 public class DBReceipt {
     private String id;
     private String receiptNumber;
@@ -19,7 +18,8 @@ public class DBReceipt {
     public DBReceipt() {
     }
 
-    public DBReceipt(String id, String receiptNumber, String date, String itemNumber, String hungarianName, String attribute, Integer price, Integer quantity) {
+    public DBReceipt(String id, String receiptNumber, String date, String itemNumber, String hungarianName,
+            String attribute, Integer price, Integer quantity) {
         this.id = id;
         this.receiptNumber = receiptNumber;
         this.date = date;
@@ -30,7 +30,7 @@ public class DBReceipt {
         this.quantity = quantity;
     }
 
-    @DynamoDBHashKey
+    @DynamoDbPartitionKey
     public String getId() {
         return id;
     }
@@ -39,7 +39,7 @@ public class DBReceipt {
         this.id = id;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "receipt_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "receipt_index")
     public String getReceiptNumber() {
         return receiptNumber;
     }
@@ -48,7 +48,8 @@ public class DBReceipt {
         this.receiptNumber = receiptNumber;
     }
 
-    @DynamoDBIndexRangeKey(attributeName = "sellingDate", globalSecondaryIndexName = "receipt_index")
+    @DynamoDbSecondarySortKey(indexNames = "sold_item_index")
+    @DynamoDbAttribute("sellingDate")
     public String getDate() {
         return date;
     }
@@ -57,7 +58,7 @@ public class DBReceipt {
         this.date = date;
     }
 
-    @DynamoDBIndexHashKey(globalSecondaryIndexName = "sold_item_index")
+    @DynamoDbSecondaryPartitionKey(indexNames = "sold_item_index")
     public String getItemNumber() {
         return itemNumber;
     }

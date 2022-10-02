@@ -24,4 +24,38 @@ public class OrderedProduct {
         this.totalPrice = quantity * price;
     }
 
+    public String getItemNumber()
+    {
+        return itemNumber;
+    }
+
+    public String getEnglishName()
+    {
+        return englishName;
+    }
+
+    public String getHungarianName()
+    {
+        return hungarianName;
+    }
+
+    public String getAttribute()
+    {
+        return attribute;
+    }
+
+    public Integer getQuantity()
+    {
+        return quantity;
+    }
+
+    public Double getPrice()
+    {
+        return price;
+    }
+
+    public Double getTotalPrice()
+    {
+        return totalPrice;
+    }
 }

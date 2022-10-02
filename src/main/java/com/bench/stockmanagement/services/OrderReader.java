@@ -31,6 +31,7 @@ public class OrderReader {
     }
 
     public Order readOrder(Path path) {
+        System.out.println(path);
         try {
             List<String> lines = Files.readAllLines(path);
 
@@ -56,6 +57,7 @@ public class OrderReader {
     }
 
     private OrderedProduct createOrderedProduct(String line) {
+        System.out.println(line);
         String[] lineParts = line.split(",");
         String item = lineParts[0];
         String englishName = lineParts[1];
