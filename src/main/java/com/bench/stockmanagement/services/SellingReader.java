@@ -50,13 +50,12 @@ public class SellingReader {
 
                 String nextLineReceiptNumber;
                 do {
-                    String[] nextLineParts = lines.get(i + 1)
+                    String[] nextLineParts = lines.get(i+1)
                             .split(",");
                     nextLineReceiptNumber = nextLineParts[0];
 
                     if (receiptNumber.equals(nextLineReceiptNumber)) {
-                        soldItems.add(createSoldItem(lines.get(i + 1)));
-                        i++;
+                        soldItems.add(createSoldItem(lines.get(++i)));
                     }
                 } while (receiptNumber.equals(nextLineReceiptNumber) && i < lines.size() - 1);
 

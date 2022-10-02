@@ -47,7 +47,7 @@ public class ProductMapper {
         List<Receipt> receiptsWithItemNumber = receipts.stream()
                     .filter(r ->r.getItems()
                             .stream()
-                            .anyMatch(soldItem -> soldItem.getAttribute()getItemNumber().equals(itemNumber)))
+                            .anyMatch(soldItem -> soldItem.getItemNumber().equals(itemNumber)))
                     .collect(Collectors.toList());
 
 
@@ -69,6 +69,12 @@ public class ProductMapper {
                     .findFirst()
                     .orElse("");
 
+            Map<String, Integer> selling = receipts.stream()
+                    .map(Receipt::getItems)
+                    .flatMap(List::stream)
+                    .filter(item -> item.getAttribute().equals(attribute))
+                    .collect(Collectors.toMap(SoldItem::getItemNumber, SoldItem::getQuantity));
+
             new SellingDetails(hungarianName, attribute, selling);
         }
 //
@@ -80,17 +86,17 @@ public class ProductMapper {
     }
 
     private List<OrderDetails> mapOrderDetails(String itemNumber, List<Order> orders) {
-        String englishName = ordersWithItemNumber.stream()
-                    .map(Order::getProducts)
-                    .flatMap(List::stream)
-                    .filter(orderedProduct -> orderedProduct.getItemNumber().equals(in))
-                    .map(OrderedProduct::getEnglishName)
-                    .distinct()
-                    .findFirst()
-                    .orElse("");
-
-        Map<String, Double> costMap = ordersWithItemNumber.stream()
-                    .collect(Collectors.toMap(o -> o.getDate().toString(), o -> mapCost(o, in)));
+//        String englishName = ordersWithItemNumber.stream()
+//                    .map(Order::getProducts)
+//                    .flatMap(List::stream)
+//                    .filter(orderedProduct -> orderedProduct.getItemNumber().equals(in))
+//                    .map(OrderedProduct::getEnglishName)
+//                    .distinct()
+//                    .findFirst()
+//                    .orElse("");
+//
+//        Map<String, Double> costMap = ordersWithItemNumber.stream()
+//                    .collect(Collectors.toMap(o -> o.getDate().toString(), o -> mapCost(o, in)));
 
         return null;
     }

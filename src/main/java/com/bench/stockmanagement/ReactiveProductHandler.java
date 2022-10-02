@@ -48,118 +48,120 @@ public class ReactiveProductHandler
     public Mono<Result> saveProducts() {
         List<Order> orders = reader.readOrder();
         List<Receipt> receipts = sellingReader.readSoldItems();
-        List<DBProduct> dbProducts = productMapper.mapProduct(orders, receipts);
+//        List<DBProduct> dbProducts = productMapper.mapProduct(orders, receipts);
 
-        return Flux.fromIterable(dbProducts).log()
-                .doOnNext(productRepository::saveProducts)
-                .then(Mono.just(SUCCESS))
-                .onErrorReturn(FAIL);
+//        return Flux.fromIterable(dbProducts).log()
+//                .doOnNext(productRepository::saveProducts)
+//                .then(Mono.just(SUCCESS))
+//                .onErrorReturn(FAIL);
+
+        return Mono.just(SUCCESS);
     }
 
-    public Mono<Result> updateProductsByReceipts() {
-        List<Receipt> receipts = sellingReader.readSoldItems();
-        String itemNumber = receipts.getItems().stream().map(SoldItem::getItemNumber).findFirst().get();
+//    public Mono<Result> updateProductsByReceipts() {
+//        List<Receipt> receipts = sellingReader.readSoldItems();
+//        String itemNumber = receipts.getItems().stream().map(SoldItem::getItemNumber).findFirst().get();
+//
+//
+//        Flux.fromIterable(receipts).log().flatMapIterable(Receipt::getItems);
+//
+//
+//        fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+//                .flatMap(product -> Mono.fromFuture(
+//                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
+//                .thenReturn(SUCCESS)
+//                .onErrorReturn(FAIL);
+//        List<DBProduct> dbProducts = productMapper.mapProduct(orders);
+//
+//        return Flux.fromIterable(dbProducts).log()
+//                .doOnNext(productRepository::saveProducts)
+//                .then(Mono.just(SUCCESS))
+//                .onErrorReturn(FAIL);
+//    }
 
-
-        Flux.fromIterable(receipts).log().flatMapIterable(Receipt::getItems);
-
-
-        fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
-                .flatMap(product -> Mono.fromFuture(
-                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
-                .thenReturn(SUCCESS)
-                .onErrorReturn(FAIL);
-        List<DBProduct> dbProducts = productMapper.mapProduct(orders);
-
-        return Flux.fromIterable(dbProducts).log()
-                .doOnNext(productRepository::saveProducts)
-                .then(Mono.just(SUCCESS))
-                .onErrorReturn(FAIL);
-    }
-
-    public Mono<Result> xxxxxxxxxxx(Receipt receipt) {
-
-
-        Mono.fromFuture(productRepository.getProductByItemNumber(itemNumber))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
-                .flatMap(product -> Mono.fromFuture(
-                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
-                .thenReturn(SUCCESS)
-                .onErrorReturn(FAIL);
-        List<DBProduct> dbProducts = productMapper.mapProduct(orders);
-
-        return Flux.fromIterable(dbProducts).log()
-                .doOnNext(productRepository::saveProducts)
-                .then(Mono.just(SUCCESS))
-                .onErrorReturn(FAIL);
-    }
+//    public Mono<Result> xxxxxxxxxxx(Receipt receipt) {
+//
+//
+//        Mono.fromFuture(productRepository.getProductByItemNumber(itemNumber))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+//                .flatMap(product -> Mono.fromFuture(
+//                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
+//                .thenReturn(SUCCESS)
+//                .onErrorReturn(FAIL);
+//        List<DBProduct> dbProducts = productMapper.mapProduct(orders);
+//
+//        return Flux.fromIterable(dbProducts).log()
+//                .doOnNext(productRepository::saveProducts)
+//                .then(Mono.just(SUCCESS))
+//                .onErrorReturn(FAIL);
+//    }
 
     // Get product by itemNumber
     // Item number, how many is expected in stock min/max, purchase prices
-    public Mono<List<ProductStockData>> getProductByItemNumber(String itemNumber) {
-        return Mono.fromFuture(() -> productRepository.getProductByItemNumber(itemNumber))
-                .log()
-                .map(productMapper::mapStockData);
-    }
+//    public Mono<List<ProductStockData>> getProductByItemNumber(String itemNumber) {
+//        return Mono.fromFuture(() -> productRepository.getProductByItemNumber(itemNumber))
+//                .log()
+//                .map(productMapper::mapStockData);
+//    }
+//
+//    public Flux<ProductStockData> getAllProductStockData() {
+//        return Flux.from(productRepository.getAllProduct())
+//                .log()
+//                .flatMapIterable(Page::items)
+//                .flatMapIterable(productMapper::mapStockData);
+//    }
 
-    public Flux<ProductStockData> getAllProductStockData() {
-        return Flux.from(productRepository.getAllProduct())
-                .log()
-                .flatMapIterable(Page::items)
-                .flatMapIterable(productMapper::mapStockData);
-    }
-
-    public Flux<Product> getAllProduct() {
-        return Flux.from(productRepository.getAllProduct())
-                .flatMapIterable(Page::items)
-                .map(product -> getProduct(product.getItemNumber()))
-                .flatMap(Mono::flux);
-    }
+//    public Flux<Product> getAllProduct() {
+//        return Flux.from(productRepository.getAllProduct())
+//                .flatMapIterable(Page::items)
+//                .map(product -> getProduct(product.getItemNumber()))
+//                .flatMap(Mono::flux);
+//    }
 
     // Get all information about a product by itemNumber
     // Name, quantity, price, all orders, all selling
-    public Mono<Product> getProduct(String itemNumber) {
-        SdkPublisher<Page<DBOrder>> ordersByItemNumber = orderRepository.getOrdersByItemNumber(itemNumber);
-        SdkPublisher<Page<DBReceipt>> soldItemsByItemNumber = sellingRepository.getSoldItemsByItemNumber(itemNumber);
-
-        Flux<DBOrder> ordersFlux = Flux.from(ordersByItemNumber)
-                .log()
-                .flatMapIterable(Page::items);
-
-        Flux<DBReceipt> receiptsFlux = Flux.from(soldItemsByItemNumber)
-                .log()
-                .flatMapIterable(Page::items);
-
-        return Mono.zip(ordersFlux.collectList(),
-                        receiptsFlux.collectList()).log()
-                .map(objects -> productMapper.map(itemNumber, objects.getT1(), objects.getT2()));
-    }
-
-    public Flux<Product> getAllSoldItemBetween(String startDate, String endDate) {
-
-        return Flux.from(productRepository.getAllProduct())
-                .flatMapIterable(Page::items)
-                .flatMap(dbProduct ->
-                    Flux.from(sellingRepository.getSoldItemByDate(dbProduct.getItemNumber(), startDate, endDate))
-                            .map(Page::items)
-                            .map(receipts -> productMapper.mapFromReceipt(dbProduct.getItemNumber(), receipts, dbProduct.getCosts()))
-                ).filter(p -> p.getItemNumber() != null);
-    }
+//    public Mono<Product> getProduct(String itemNumber) {
+//        SdkPublisher<Page<DBOrder>> ordersByItemNumber = orderRepository.getOrdersByItemNumber(itemNumber);
+//        SdkPublisher<Page<DBReceipt>> soldItemsByItemNumber = sellingRepository.getSoldItemsByItemNumber(itemNumber);
+//
+//        Flux<DBOrder> ordersFlux = Flux.from(ordersByItemNumber)
+//                .log()
+//                .flatMapIterable(Page::items);
+//
+//        Flux<DBReceipt> receiptsFlux = Flux.from(soldItemsByItemNumber)
+//                .log()
+//                .flatMapIterable(Page::items);
+//
+//        return Mono.zip(ordersFlux.collectList(),
+//                        receiptsFlux.collectList()).log()
+//                .map(objects -> productMapper.map(itemNumber, objects.getT1(), objects.getT2()));
+//    }
+//
+//    public Flux<Product> getAllSoldItemBetween(String startDate, String endDate) {
+//
+//        return Flux.from(productRepository.getAllProduct())
+//                .flatMapIterable(Page::items)
+//                .flatMap(dbProduct ->
+//                    Flux.from(sellingRepository.getSoldItemByDate(dbProduct.getItemNumber(), startDate, endDate))
+//                            .map(Page::items)
+//                            .map(receipts -> productMapper.mapFromReceipt(dbProduct.getItemNumber(), receipts, dbProduct.getCosts()))
+//                ).filter(p -> p.getItemNumber() != null);
+//    }
 
     // Update the purchase price, stock information
-    public Mono<Result> updateProduct(ProductStockData productStockData) {
-        DBProduct dbProduct = productMapper.mapProduct(productStockData);
-        return Mono.fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
-                .flatMap(product -> Mono.fromFuture(
-                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
-                .thenReturn(SUCCESS)
-                .onErrorReturn(FAIL);
-    }
+//    public Mono<Result> updateProduct(ProductStockData productStockData) {
+//        DBProduct dbProduct = productMapper.mapProduct(productStockData);
+//        return Mono.fromFuture(productRepository.getProductByItemNumber(productStockData.getItemNumber()))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not find product for item number")))
+//                .flatMap(product -> Mono.fromFuture(
+//                        productRepository.updateProduct(mergeDbProducts(product, dbProduct))))
+//                .switchIfEmpty(Mono.error(new IllegalArgumentException("Could not update product for item number")))
+//                .thenReturn(SUCCESS)
+//                .onErrorReturn(FAIL);
+//    }
 
     private DBProduct mergeDbProducts(DBProduct oldProduct, DBProduct newProduct) {
         String itemNumber = oldProduct.getItemNumber();

@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.bench.stockmanagement.domain.Result.FAIL;
@@ -67,7 +68,7 @@ public class ReactiveSellingHandler
 
     // Get receipts between dates which contain the given item numbers
     public Flux<Receipt> getSoldItemBetween(String startDate, String endDate, String... itemNumber) {
-        return Flux.fromIterable(List.of(itemNumber)).log()
+        return Flux.fromIterable(Arrays.asList(itemNumber)).log()
                 .flatMap(in -> Flux.from(sellingRepository.getSoldItemByDate(in, startDate, endDate)))
                 .map(Page::items)
                 .flatMapIterable(mapper::mapReceipts);

@@ -83,33 +83,33 @@ public class ReactiveController
         return reactiveSellingHandler.getItems(itemNumber);
     }
 
-    @GetMapping("/product/{itemNumber}")
-    public Mono<Product> getProduct(@PathVariable String itemNumber) {
-        return reactiveProductHandler.getProduct(itemNumber);
-    }
-
-    @GetMapping("/product/all")
-    public Flux<Product> getAllProduct() {
-        return reactiveProductHandler.getAllProduct();
-    }
-
-    @GetMapping("/product/all/in-a-period")
-    public Flux<Product> getAllProduct(@RequestParam String startDate, @RequestParam String endDate) {
-        return reactiveProductHandler.getAllSoldItemBetween(startDate, endDate);
-    }
-
-    @GetMapping("/product/stock")
-    public Flux<ProductStockData> getAllProductStockData() {
-        return reactiveProductHandler.getAllProductStockData();
-    }
-
-    @GetMapping("/product/stock/{itemNumber}")
-    public Mono<List<ProductStockData>> getProductStockData(@PathVariable String itemNumber) {
-        return reactiveProductHandler.getProductByItemNumber(itemNumber);
-    }
-
-    @PostMapping("update/product/stock")
-    public Mono<Result> updateProductStockData(@RequestBody ProductStockData productStockData) {
-        return reactiveProductHandler.updateProduct(productStockData);
-    }
+//    @GetMapping("/product/{itemNumber}")
+//    public Mono<Product> getProduct(@PathVariable String itemNumber) {
+//        return reactiveProductHandler.getProduct(itemNumber);
+//    }
+//
+//    @GetMapping("/product/all")
+//    public Flux<Product> getAllProduct() {
+//        return reactiveProductHandler.getAllProduct();
+//    }
+//
+//    @GetMapping("/product/all/in-a-period")
+//    public Flux<Product> getAllProduct(@RequestParam String startDate, @RequestParam String endDate) {
+//        return reactiveProductHandler.getAllSoldItemBetween(startDate, endDate);
+//    }
+//
+//    @GetMapping("/product/stock")
+//    public Flux<ProductStockData> getAllProductStockData() {
+//        return reactiveProductHandler.getAllProductStockData();
+//    }
+//
+//    @GetMapping("/product/stock/{itemNumber}")
+//    public Mono<List<ProductStockData>> getProductStockData(@PathVariable String itemNumber) {
+//        return reactiveProductHandler.getProductByItemNumber(itemNumber);
+//    }
+//
+//    @PostMapping("update/product/stock")
+//    public Mono<Result> updateProductStockData(@RequestBody ProductStockData productStockData) {
+//        return reactiveProductHandler.updateProduct(productStockData);
+//    }
 }
