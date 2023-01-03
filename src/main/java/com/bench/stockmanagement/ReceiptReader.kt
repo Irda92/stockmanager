@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
 
 fun readReceipts(fileName: String): List<SoldItem?> {
 //    println(fileName)
-    var lines = File(fileName).readLines()
+    var lines = File(fileName).readLines(charset("UTF_16LE"))
     lines = lines.subList(1,lines.size)
     return lines.map { mapSzamla(it) }.filter { Objects.nonNull(it) }
 }
@@ -46,13 +46,13 @@ fun mapSzamla(line: String): SoldItem? {
     if (parts.size == 1) {
         return null
     }
-    var sorszam = parts[0].toUpperCase()
+    var sorszam = parts[0].uppercase()
     var datum = parts[1]
     var termek = parts[2]
     var kod = parts[3].filter { c -> c.isLetterOrDigit() || c.equals('-') }
     var tulajdonsag = Attribute.hungarian(parts[4])
-    var mennyiseg = parts[5].filter { c -> c.isDigit() }.toInt()
-    var ar = parts[7].filter { c -> c.isDigit() }.toInt()
+    var ar = parts[7].toInt()
+    var mennyiseg = if(ar > 0) {parts[5].toInt()} else {-Math.abs(parts[5].toInt())}
     var fizetesiMod = parts[11]
 
     return SoldItem(sorszam, datum, termek, kod, tulajdonsag, mennyiseg, ar, fizetesiMod)
