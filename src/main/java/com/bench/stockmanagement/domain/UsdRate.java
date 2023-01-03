@@ -5,7 +5,6 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 
-@Getter
 @ToString
 public class UsdRate {
     private final LocalDate date;
@@ -14,5 +13,15 @@ public class UsdRate {
     public UsdRate(LocalDate date, double rate) {
         this.date = date;
         this.rate = rate;
+    }
+
+    public LocalDate getDate()
+    {
+        return date;
+    }
+
+    public double getRate()
+    {
+        return rate;
     }
 }

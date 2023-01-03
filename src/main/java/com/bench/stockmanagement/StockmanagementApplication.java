@@ -26,6 +26,7 @@ public class StockmanagementApplication {
     private static final Projection PROJECTION = Projection.builder().projectionType("ALL").build();
 
     public static void main(String... args) {
+        System.out.println(String.format("The value is %s", null));
         SpringApplication.run(StockmanagementApplication.class, args);
 
 //        CompletableFuture<ListTablesResponse> listTablesResponseCompletableFuture = ASYNC_CLIENT.listTables();

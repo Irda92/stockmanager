@@ -10,14 +10,14 @@ import java.util.List;
 
 @Component
 public class RateExchanger {
-    private final Reader rateReader;
+    private static final Reader rateReader = new Reader();
 
-    @Autowired
-    public RateExchanger(Reader rateReader) {
-        this.rateReader = rateReader;
-    }
+//    @Autowired
+//    public RateExchanger(Reader rateReader) {
+//        this.rateReader = rateReader;
+//    }
 
-    public Double getRateFor(LocalDate date) {
+    public static Double getRateFor(LocalDate date) {
         List<UsdRate> usdRates = rateReader.readRate();
 
         usdRates.sort(Comparator.comparing(UsdRate::getDate));
