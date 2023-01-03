@@ -67,32 +67,32 @@ fun main(args: Array<String>) {
     println(sProducts)
 
     var allProduct = mergeProducts(products, sProducts)
-//    println(allProduct)
     writeToFile(allProduct)
 }
 
 fun writeToFile(list: List<Product>) {
-//    val path = Paths.get("foo.out")
-//    val text = "Some log…"
-
     val path = Paths.get("./src/main/resources/export.csv")
     Files.newBufferedWriter(path, charset("UTF_16LE")).use {
          out ->
 
-            out.write("Cikkszám,Angol név,Magyar név,Tulajdonság,Összes rendelés,Összes eladás,Készleten")
+            out.write("Cikkszám,Angol név,Magyar név,Tulajdonság,Összes rendelés,Összes eladás,Készleten,Egység ár(HUF),Készlet ár (HUF)")
             out.newLine()
-            for (l in list) {
-                out.write(l.asLine())
+            for ((index, value) in list.withIndex()) {
+                out.write(value.asLine())
+//                out.write("=G${index+2}*H${index+2}")
+                val inStock = value.stock
+                if (inStock > 0) { out.write("=G${index+2}*H${index+2}")}
                 out.newLine()
             }
+            out.write(",,,,,,,,=sum(I1:I${list.size+1})")
         }
 
         println("Writed to file")
-
 }
 fun mergeProducts(orderedProducts: OrderedProducts, soldProducts: SoldProducts): List<Product> {
     val ordered = orderedProducts.products
     val sold = soldProducts.products
+    var itemsWithPrice: List<Pair<String, Int>> = mutableListOf()
 
     var allProductsList: List<Product> = mutableListOf()
     for (o in ordered) {
@@ -102,9 +102,19 @@ fun mergeProducts(orderedProducts: OrderedProducts, soldProducts: SoldProducts):
         var totalOrder = o.orderedQuantity
         val hungarianName = sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.hungarianName ?: ""
         val totalSold = sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.soldQuantity ?: 0
+        var price = sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.price ?: 0
+        if (price != 0) {
+            itemsWithPrice = itemsWithPrice.plus(Pair(itemNumber, price))
+        }
+//        else {
+//            val pair = itemsWithPrice.find { pair -> pair.first.equals(itemNumber) }
+//            price = pair?.second?:0
+//        }
         val inStock = totalOrder - totalSold
+        val totalPrice = if (inStock > 0) {price * inStock} else 0
+//        val totalPrice = price * inStock
 
-        var product = Product(itemNumber, englishName, hungarianName, totalOrder, totalSold, inStock, attribute)
+        var product = Product(itemNumber, englishName, hungarianName, totalOrder, totalSold, inStock, attribute, price, totalPrice)
         allProductsList = allProductsList.plus(product)
     }
 
@@ -118,42 +128,24 @@ fun mergeProducts(orderedProducts: OrderedProducts, soldProducts: SoldProducts):
                 sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.hungarianName ?: ""
             val totalSold =
                 sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.soldQuantity ?: 0
+            val price = sold.find { soldProduct -> soldProduct.itemNumber.equals(itemNumber) && soldProduct.attribute == attribute }?.price ?: 0
             val inStock = totalOrder - totalSold
+            val totalPrice = if (inStock > 0) {price * inStock} else 0
+//            val totalPrice = price * inStock
 
-            var product = Product(itemNumber, "", hungarianName, totalOrder, totalSold, inStock, attribute)
+            var product = Product(itemNumber, "", hungarianName, totalOrder, totalSold, inStock, attribute, price, totalPrice)
             allProductsList = allProductsList.plus(product)
         }
     }
     val comparator = Comparator { p1: Product, p2: Product -> p1.itemNumber.compareTo(p2.itemNumber)}
     allProductsList = allProductsList.sortedWith(comparator)
+    allProductsList.forEach { product: Product ->
+        if (product.price == 0) {
+            val pair = itemsWithPrice.find { pair -> pair.first.equals(product.itemNumber) }
+            product.price = pair?.second?:0
+        }
+    }
     return allProductsList
-}
-
-data class Product(var itemNumber: String,
-                   var englishName: String,
-                   var hungarianName: String,
-                   var ordered: Int,
-                   var sold: Int,
-                   var stock: Int,
-                   var atribute: Attribute?) {
-    fun asLine(): String {
-        return "$itemNumber,$englishName,${hungarianName.replace(",", " ")},${atribute!!.hungarian},$ordered,$sold,$stock"
-    }
-}
-
-data class OrderedProducts(var products: Set<OrderedProduct>) {
-    fun add(product: OrderedProduct) {
-        products.plus(product)
-    }
-    fun increaseQuantity(itemNumber: String, quantity: Int) {
-        this.products.find { it.itemNumber.equals(itemNumber) }?.orderedQuantity?.plus(quantity)
-    }
-}
-
-data class SoldProducts(var products: Set<SoldProduct>) {
-    fun add(product: OrderedProduct) {
-        products.plus(product)
-    }
 }
 
 fun sumOrders(orderedItems: List<OrderedItem?>, products: OrderedProducts):OrderedProducts {
@@ -166,8 +158,9 @@ fun sumOrders(orderedItems: List<OrderedItem?>, products: OrderedProducts):Order
         if (oldProductValue ==null) {
             allProducts = allProducts.plus(orderedProduct)
         } else {
-            val increasedQuantity = oldProductValue.increaseQuantity(orderedProduct.orderedQuantity)
-            allProducts = allProducts.plus(increasedQuantity)
+            val newProductValue =
+                oldProductValue.increaseQuantity(orderedProduct.orderedQuantity).updateName(orderedProduct.englishName)
+            allProducts = allProducts.plus(newProductValue)
         }
     }
     val comparator = Comparator { p1: OrderedProduct, p2: OrderedProduct -> p1.itemNumber.compareTo(p2.itemNumber)}
@@ -175,13 +168,12 @@ fun sumOrders(orderedItems: List<OrderedItem?>, products: OrderedProducts):Order
     return OrderedProducts(allProducts)
 }
 
-
 fun sumSelling(soldItems: List<SoldItem?>, products: SoldProducts):SoldProducts {
     var allProducts = products.products
     for (item: SoldItem? in soldItems)
     {
         if (item == null) { break }
-        val soldProduct = SoldProduct(item.kod, item.termek, item.mennyiseg, item.tulajdonsag)
+        val soldProduct = SoldProduct(item.kod, item.termek, item.mennyiseg, item.tulajdonsag, item.ar)
         val oldProductValue = allProducts.filter { it.equalsByItemNumber(soldProduct) }.firstOrNull()
         if (oldProductValue ==null) {
             allProducts = allProducts.plus(soldProduct)
@@ -194,7 +186,6 @@ fun sumSelling(soldItems: List<SoldItem?>, products: SoldProducts):SoldProducts 
     allProducts = allProducts.sortedWith(comparator).toSet()
     return SoldProducts(allProducts)
 }
-
 
 fun readOrders(fileName: String): List<OrderedItem?> {
 //    println(fileName)
@@ -225,7 +216,3 @@ fun mapOrder(line: String, sellerName: String, orderDate: String, shippingCost: 
 
     return OrderedItem(itemNumber, englishItemName, hungarianItemName, attribute, quantity, price, shippingCost, orderDate, sellerName)
 }
-
-
-// M-8C,Silicone cover for throttle,,Black,2,1.3
-

@@ -35,11 +35,25 @@ data class BankiTranzakcio(var szamlaszam: String,
                            var kozlemeny: String,
                            var megjegyzes: String
 )
+data class OrderedProducts(var products: Set<OrderedProduct>) {
+    fun add(product: OrderedProduct) {
+        products.plus(product)
+    }
+}
 
-data class SoldProduct(var itemNumber: String,
-                       var hungarianName: String,
-                       var soldQuantity: Int,
-                       var attribute: Attribute?) {
+data class SoldProducts(var products: Set<SoldProduct>) {
+    fun add(product: OrderedProduct) {
+        products.plus(product)
+    }
+}
+
+data class SoldProduct(
+    var itemNumber: String,
+    var hungarianName: String,
+    var soldQuantity: Int,
+    var attribute: Attribute?,
+    var price: Int
+) {
     fun increaseQuantity(quantity: Int):SoldProduct {
         this.soldQuantity = this.soldQuantity.plus(quantity)
         return this
@@ -63,6 +77,14 @@ data class OrderedProduct(var itemNumber: String,
         this.orderedQuantity = this.orderedQuantity.plus(quantity)
         return this
     }
+    fun updateName(name: String): OrderedProduct {
+        return if (this.englishName.isNotEmpty()) {
+            this
+        } else {
+            this.englishName = name;
+            this
+        }
+    }
     fun equalsByName(other: OrderedProduct): Boolean {
         return this.itemNumber.equals(other.itemNumber) &&
                 this.englishName.equals(other.englishName) &&
@@ -71,6 +93,22 @@ data class OrderedProduct(var itemNumber: String,
     fun equalsByItemNumber(other: OrderedProduct): Boolean {
         return this.itemNumber.equals(other.itemNumber) &&
                 this.attribute!!.equals(other.attribute)
+    }
+}
+
+data class Product(
+    var itemNumber: String,
+    var englishName: String,
+    var hungarianName: String,
+    var ordered: Int,
+    var sold: Int,
+    var stock: Int,
+    var atribute: Attribute?,
+    var price: Int,
+    var totalPrice: Int
+) {
+    fun asLine(): String {
+        return "$itemNumber,$englishName,${hungarianName.replace(",", " ")},${atribute!!.hungarian},$ordered,$sold,$stock,$price,"
     }
 }
 

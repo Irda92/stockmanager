@@ -49,7 +49,7 @@ fun mapSzamla(line: String): SoldItem? {
     var sorszam = parts[0].uppercase()
     var datum = parts[1]
     var termek = parts[2]
-    var kod = parts[3].filter { c -> c.isLetterOrDigit() || c.equals('-') }
+    var kod = parts[3].filter { c -> c.isLetterOrDigit() || c.equals('-') }.uppercase()
     var tulajdonsag = Attribute.hungarian(parts[4])
     var ar = parts[7].toInt()
     var mennyiseg = if(ar > 0) {parts[5].toInt()} else {-Math.abs(parts[5].toInt())}
